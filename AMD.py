@@ -99,8 +99,7 @@ if st.session_state.calcolato:
     st.session_state.salvataggio = st.radio("Vuoi salvare il questionario?", ["Sì", "No"], index=None)
 
     if st.session_state.salvataggio == "No":
-        for key in list(st.session_state.keys()):
-            del st.session_state[key]
+        st.session_state.clear()
         st.rerun()
 
     elif st.session_state.salvataggio == "Sì":
