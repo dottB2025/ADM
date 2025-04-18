@@ -32,19 +32,22 @@ errori = []
 
 with st.form("questionario"):
     for idx, (key, testo, opzioni, corretto, punteggio) in enumerate(DOMANDE, 1):
-        testo_domanda = f"{idx}. {testo}"
-        if key in errori:
-            testo_domanda += " (risposta mancante)"
         risposta = st.radio(
-            testo_domanda,
+            label=f"{idx}. {testo}{' (risposta mancante)' if key in errori else ''}",
             options=opzioni,
             key=key,
             index=None,
-            help="Seleziona una risposta",
             label_visibility="visible"
         )
         risposte[key] = risposta
-    risposta_alcol = st.radio("14. Quanti bicchieri di vino/birra bevi al giorno", ["0", "1", "2", "più di 2"], key="Bevande alcoliche", index=None)
+
+    risposta_alcol = st.radio(
+        "14. Quanti bicchieri di vino/birra bevi al giorno" + (" (risposta mancante)" if "Bevande alcoliche" in errori else ""),
+        ["0", "1", "2", "più di 2"],
+        key="Bevande alcoliche",
+        index=None
+    )
+
     invia = st.form_submit_button("Calcola Punteggio")
 
 if invia:
@@ -93,13 +96,14 @@ if invia:
     st.caption("*Fonte: Mediterranean Diet Serving Score (Monteagudo et al., 2015)*")
 
     if errori:
-        st.markdown("""
-        <style>
-        label[data-testid="stRadioLabel"]:has(+ div input:checked) {
-            color: inherit !important;
+        style = """<style>
+        label[data-testid="stRadioLabel"] {
+            color: inherit;
         }
-        div[data-testid="stRadio"] > label {
-            color: red !important;
-        }
-        </style>
-        """, unsafe_allow_html=True)
+        """
+        for key in errori:
+            style += f"label[for=\"{key}-0\"] {{ color: red !important; }}\n"
+        if "Bevande alcoliche" in errori:
+            style += "label[for=\"Bevande alcoliche-0\"] { color: red !important; }\n"
+        style += "</style>"
+        st.markdown(style, unsafe_allow_html=True)
