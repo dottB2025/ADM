@@ -8,9 +8,9 @@ Questo questionario valuta la tua aderenza alla Dieta Mediterranea secondo il pu
 """)
 
 DOMANDE = [
-    ("Frutta", "Quante porzioni di frutta consumi per pasto principale (colazione, pranzo e cena)", ["0", "1-2", "maggiore di 2"], "1-2", 3),
-    ("Verdura", "Quante porzioni di verdura consumi per pasto principale (colazione, pranzo e cena)", ["2 o più", "meno di 2"], "2 o più", 3),
-    ("Cereali", "Quante porzioni di cereali (pane, cereali per la colazione, riso e pasta) consumi per pasto principale", ["0", "1-2", "più di 2"], "1-2", 3),
+    ("Frutta", "1. Quante porzioni di frutta consumi per pasto principale (colazione, pranzo e cena)", ["0", "1-2", "maggiore di 2"], "1-2", 3),
+    ("Verdura", "2. Quante porzioni di verdura consumi per pasto principale (colazione, pranzo e cena)", ["2 o più", "meno di 2"], "2 o più", 3),
+    ("Cereali", "3. Quante porzioni di cereali (pane, cereali per la colazione, riso e pasta) consumi per pasto principale", ["0", "1-2", "più di 2"], "1-2", 3),
     ("Patate", "Quante porzioni di patate consumi a settimana", ["3 o meno", "più di 3"], "3 o meno", 1),
     ("Olio d’oliva", "Usi olio d’oliva (su insalate, pane o per friggere) ad ogni pasto principale", ["Sì", "No"], "Sì", 3),
     ("Frutta secca", "Quante porzioni di frutta secca consumi al giorno", ["0", "1-2", "più di 2"], "1-2", 2),
@@ -32,21 +32,20 @@ errori = []
 
 with st.form("questionario"):
     for idx, (key, testo, opzioni, corretto, punteggio) in enumerate(DOMANDE, 1):
-        risposta = st.radio(
-            label=f"{idx}. {testo}{' (risposta mancante)' if key in errori else ''}",
-            options=opzioni,
-            key=key,
-            index=None,
-            label_visibility="visible"
-        )
+        is_missing = key in errori
+        domanda = f"{idx}. {testo}{' (risposta mancante)' if is_missing else ''}"
+        style_id = f"style_{key}"
+        if is_missing:
+            st.markdown(f"<style>#{style_id} > label {{ color: red !important; }}</style>", unsafe_allow_html=True)
+        with st.container():
+            risposta = st.radio(domanda, options=opzioni, key=key, index=None)
         risposte[key] = risposta
 
-    risposta_alcol = st.radio(
-        "14. Quanti bicchieri di vino/birra bevi al giorno" + (" (risposta mancante)" if "Bevande alcoliche" in errori else ""),
-        ["0", "1", "2", "più di 2"],
-        key="Bevande alcoliche",
-        index=None
-    )
+    is_missing_alcol = "Bevande alcoliche" in errori
+    domanda_alcol = f"14. Quanti bicchieri di vino/birra bevi al giorno{' (risposta mancante)' if is_missing_alcol else ''}"
+    if is_missing_alcol:
+        st.markdown("<style>#style_Bevande > label { color: red !important; }</style>", unsafe_allow_html=True)
+    risposta_alcol = st.radio(domanda_alcol, ["0", "1", "2", "più di 2"], key="Bevande alcoliche", index=None)
 
     invia = st.form_submit_button("Calcola Punteggio")
 
@@ -94,16 +93,3 @@ if invia:
         st.info(f"**{livello}**")
 
     st.caption("*Fonte: Mediterranean Diet Serving Score (Monteagudo et al., 2015)*")
-
-    if errori:
-        style = """<style>
-        label[data-testid="stRadioLabel"] {
-            color: inherit;
-        }
-        """
-        for key in errori:
-            style += f"label[for=\"{key}-0\"] {{ color: red !important; }}\n"
-        if "Bevande alcoliche" in errori:
-            style += "label[for=\"Bevande alcoliche-0\"] { color: red !important; }\n"
-        style += "</style>"
-        st.markdown(style, unsafe_allow_html=True)
