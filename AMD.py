@@ -34,8 +34,10 @@ with st.form("questionario"):
     for idx, (key, testo, opzioni, corretto, punteggio) in enumerate(DOMANDE, 1):
         risposta = st.radio(f"{idx}. {testo}", options=opzioni, key=key, index=None)
         risposte[key] = risposta
+        st.markdown("---")
 
     risposta_alcol = st.radio("14. Quanti bicchieri di vino/birra bevi al giorno", ["0", "1", "2", "più di 2"], key="Bevande alcoliche", index=None)
+    st.markdown("---")
     invia = st.form_submit_button("Calcola Punteggio")
 
 if invia:
