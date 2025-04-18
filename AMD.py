@@ -32,12 +32,14 @@ errori = []
 
 with st.form("questionario"):
     for idx, (key, testo, opzioni, corretto, punteggio) in enumerate(DOMANDE, 1):
-        st.markdown(f"**{idx}. {testo}**")
+        colore = "red" if key in [e[1] for e in errori] else "black"
+        st.markdown(f"<span style='color:{colore}; font-weight:600'>{idx}. {testo}</span>", unsafe_allow_html=True)
         risposta = st.radio("", options=opzioni, key=key, index=None)
         risposte[key] = risposta
         st.markdown("---")
 
-    st.markdown("**14. Quanti bicchieri di vino/birra bevi al giorno**")
+    colore_alcol = "red" if "Bevande alcoliche" in [e[1] for e in errori] else "black"
+    st.markdown(f"<span style='color:{colore_alcol}; font-weight:600'>14. Quanti bicchieri di vino/birra bevi al giorno</span>", unsafe_allow_html=True)
     risposta_alcol = st.radio("", ["0", "1", "2", "più di 2"], key="Bevande alcoliche", index=None)
     st.markdown("---")
     invia = st.form_submit_button("Calcola Punteggio")
