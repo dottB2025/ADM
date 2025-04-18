@@ -1,6 +1,7 @@
 import streamlit as st
 import base64
 import io
+import csv
 
 st.set_page_config(page_title="Questionario Dieta Mediterranea - MDSS", layout="centered")
 st.title("\U0001F35D Questionario di Aderenza alla Dieta Mediterranea (MDSS)")
@@ -34,13 +35,12 @@ if "codice" not in st.session_state:
 
 if not st.session_state.calcolato:
     genere = st.radio("Seleziona il tuo genere", ["Femmina", "Maschio"], horizontal=True, index=None)
-    risposte = {}
     errori = []
 
     with st.form("questionario"):
         for idx, (key, testo, opzioni, _, _) in enumerate(DOMANDE, 1):
             st.markdown(f"**{idx}. {testo}**")
-            risposte[key] = st.radio("", options=opzioni, key=key, index=None)
+            st.radio("", options=opzioni, key=key, index=None)
             st.markdown("---")
 
         st.markdown("**14. Quanti bicchieri di vino/birra bevi al giorno**")
@@ -98,23 +98,41 @@ if st.session_state.calcolato:
         st.experimental_rerun()
 
     elif st.session_state.salvataggio == "Sì":
-        st.session_state.codice = st.text_input("Assegna un codice a questa intervista")
+        codice = st.text_input("Assegna un codice a questa intervista")
+        if codice:
+            st.session_state.codice = codice
+            if st.button("Salva"):
+                # File TXT
+                txt_buffer = io.StringIO()
+                txt_buffer.write("Questionario di Aderenza alla Dieta Mediterranea (ADM)\n\n")
+                txt_buffer.write(f"Codice intervista: {codice}\n")
+                txt_buffer.write(f"Genere: {st.session_state.get('genere', 'Non specificato')}\n\n")
+                for idx, (key, testo, _, _, _) in enumerate(DOMANDE, 1):
+                    risposta = st.session_state.get(key, "Nessuna risposta")
+                    txt_buffer.write(f"{idx}. {testo}\nRisposta: {risposta}\n\n")
+                txt_buffer.write(f"14. Quanti bicchieri di vino/birra bevi al giorno\nRisposta: {st.session_state.get('Bevande alcoliche', 'Nessuna risposta')}\n\n")
+                txt_buffer.write(f"Punteggio MDSS: {st.session_state.punteggio} / 24\n\n")
+                txt_buffer.write("punteggio di aderenza alla dieta mediterranea (MDSS: Mediterranean Diet Serving Score) calcolato secondo Monteagudo et al (https://doi.org/10.1371/journal.pone.0128594) ed ottenuto tramite web app del dott. Giovanni Buonsanti - Matera\n")
+                txt_bytes = txt_buffer.getvalue().encode("utf-8")
+                txt_b64 = base64.b64encode(txt_bytes).decode()
+                txt_href = f'<a href="data:application/octet-stream;base64,{txt_b64}" download="MDSS_{codice}.txt">📄 Scarica il file TXT</a>'
 
-        if st.session_state.codice and st.button("Salva"):
-            buffer = io.StringIO()
-            buffer.write("Questionario di Aderenza alla Dieta Mediterranea (ADM)\n\n")
-            buffer.write(f"Codice intervista: {st.session_state['codice']}\n")
-            buffer.write(f"Genere: {st.session_state.get('genere', 'Non specificato')}\n\n")
+                # File CSV
+                csv_buffer = io.StringIO()
+                writer = csv.writer(csv_buffer)
+                writer.writerow(["Codice intervista", codice])
+                writer.writerow(["Genere", st.session_state.get("genere", "")])
+                writer.writerow(["Punteggio MDSS", st.session_state.punteggio])
+                writer.writerow([])
+                for idx, (key, testo, _, _, _) in enumerate(DOMANDE, 1):
+                    risposta = st.session_state.get(key, "")
+                    writer.writerow([f"{idx}. {testo}", risposta])
+                writer.writerow(["14. Quanti bicchieri di vino/birra bevi al giorno", st.session_state.get("Bevande alcoliche", "")])
+                writer.writerow([])
+                writer.writerow(["Nota", "punteggio di aderenza alla dieta mediterranea (MDSS: Mediterranean Diet Serving Score) calcolato secondo Monteagudo et al (https://doi.org/10.1371/journal.pone.0128594) ed ottenuto tramite web app del dott. Giovanni Buonsanti - Matera"])
+                csv_bytes = csv_buffer.getvalue().encode("utf-8")
+                csv_b64 = base64.b64encode(csv_bytes).decode()
+                csv_href = f'<a href="data:application/octet-stream;base64,{csv_b64}" download="MDSS_{codice}.csv">📊 Scarica il file CSV</a>'
 
-            for idx, (key, testo, _, _, _) in enumerate(DOMANDE, 1):
-                risposta = st.session_state.get(key, "Nessuna risposta")
-                buffer.write(f"{idx}. {testo}\nRisposta: {risposta}\n\n")
-
-            buffer.write(f"14. Quanti bicchieri di vino/birra bevi al giorno\nRisposta: {st.session_state.get('Bevande alcoliche', 'Nessuna risposta')}\n\n")
-            buffer.write(f"Punteggio MDSS: {st.session_state.punteggio} / 24\n\n")
-            buffer.write("punteggio di aderenza alla dieta mediterranea (MDSS: Mediterranean Diet Serving Score) calcolato secondo Monteagudo et al (https://doi.org/10.1371/journal.pone.0128594) ed ottenuto tramite web app del dott. Giovanni Buonsanti - Matera\n")
-
-            txt_bytes = buffer.getvalue().encode("utf-8")
-            b64 = base64.b64encode(txt_bytes).decode()
-            href = f'<a href="data:application/octet-stream;base64,{b64}" download="MDSS_{st.session_state.codice}.txt">📄 Scarica il file TXT</a>'
-            st.markdown(href, unsafe_allow_html=True)
+                st.markdown(txt_href, unsafe_allow_html=True)
+                st.markdown(csv_href, unsafe_allow_html=True)
