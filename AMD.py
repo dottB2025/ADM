@@ -102,7 +102,7 @@ if st.session_state.calcolato:
             st.session_state.vuole_salvare = True
 
     if st.session_state.vuole_salvare:
-        st.markdown("**Assegna un codice a questa intervista**")
+        st.markdown("**Assegna un codice (per es. il tuo nome) a questa intervista e premi invio**")
         codice = st.text_input("", key="codice_intervista")
 
         if codice:
