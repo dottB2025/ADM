@@ -32,14 +32,16 @@ errori = []
 
 with st.form("questionario"):
     for idx, (key, testo, opzioni, corretto, punteggio) in enumerate(DOMANDE, 1):
-        colore = "red" if key in [e[1] for e in errori] else "black"
-        st.markdown(f"<span style='color:{colore}; font-weight:600'>{idx}. {testo}</span>", unsafe_allow_html=True)
+        is_missing = key in [e[1] for e in errori]
+        suffix = "<span style='color:red'> (risposta mancante)</span>" if is_missing else ""
+        st.markdown(f"<div style='font-weight:bold; color:{'red' if is_missing else 'black'}'>{idx}. {testo}{suffix}</div>", unsafe_allow_html=True)
         risposta = st.radio("", options=opzioni, key=key, index=None)
         risposte[key] = risposta
         st.markdown("---")
 
-    colore_alcol = "red" if "Bevande alcoliche" in [e[1] for e in errori] else "black"
-    st.markdown(f"<span style='color:{colore_alcol}; font-weight:600'>14. Quanti bicchieri di vino/birra bevi al giorno</span>", unsafe_allow_html=True)
+    is_missing_alcol = "Bevande alcoliche" in [e[1] for e in errori]
+    suffix_alcol = "<span style='color:red'> (risposta mancante)</span>" if is_missing_alcol else ""
+    st.markdown(f"<div style='font-weight:bold; color:{'red' if is_missing_alcol else 'black'}'>14. Quanti bicchieri di vino/birra bevi al giorno{suffix_alcol}</div>", unsafe_allow_html=True)
     risposta_alcol = st.radio("", ["0", "1", "2", "più di 2"], key="Bevande alcoliche", index=None)
     st.markdown("---")
     invia = st.form_submit_button("Calcola Punteggio")
