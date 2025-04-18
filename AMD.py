@@ -40,11 +40,15 @@ if not st.session_state.calcolato:
     with st.form("questionario"):
         for idx, (key, testo, opzioni, _, _) in enumerate(DOMANDE, 1):
             st.markdown(f"**{idx}. {testo}**")
-            st.radio("", options=opzioni, key=key, index=None)
+            valore = st.radio("", options=opzioni, key=key, index=None)
+            if valore is not None:
+                st.session_state[key] = valore
             st.markdown("---")
 
         st.markdown("**14. Quanti bicchieri di vino/birra bevi al giorno**")
-        st.radio("", ["0", "1", "2", "più di 2"], key="Bevande alcoliche", index=None)
+        valore_alcol = st.radio("", ["0", "1", "2", "più di 2"], key="Bevande alcoliche", index=None)
+        if valore_alcol is not None:
+            st.session_state["Bevande alcoliche"] = valore_alcol
         st.markdown("---")
         invia = st.form_submit_button("Calcola Punteggio")
 
@@ -99,40 +103,43 @@ if st.session_state.calcolato:
 
     elif st.session_state.salvataggio == "Sì":
         codice = st.text_input("Assegna un codice a questa intervista")
+        salva = st.button("Salva")
+
         if codice:
             st.session_state.codice = codice
-            if st.button("Salva"):
-                # File TXT
-                txt_buffer = io.StringIO()
-                txt_buffer.write("Questionario di Aderenza alla Dieta Mediterranea (ADM)\n\n")
-                txt_buffer.write(f"Codice intervista: {codice}\n")
-                txt_buffer.write(f"Genere: {st.session_state.get('genere', 'Non specificato')}\n\n")
-                for idx, (key, testo, _, _, _) in enumerate(DOMANDE, 1):
-                    risposta = st.session_state.get(key, "Nessuna risposta")
-                    txt_buffer.write(f"{idx}. {testo}\nRisposta: {risposta}\n\n")
-                txt_buffer.write(f"14. Quanti bicchieri di vino/birra bevi al giorno\nRisposta: {st.session_state.get('Bevande alcoliche', 'Nessuna risposta')}\n\n")
-                txt_buffer.write(f"Punteggio MDSS: {st.session_state.punteggio} / 24\n\n")
-                txt_buffer.write("punteggio di aderenza alla dieta mediterranea (MDSS: Mediterranean Diet Serving Score) calcolato secondo Monteagudo et al (https://doi.org/10.1371/journal.pone.0128594) ed ottenuto tramite web app del dott. Giovanni Buonsanti - Matera\n")
-                txt_bytes = txt_buffer.getvalue().encode("utf-8")
-                txt_b64 = base64.b64encode(txt_bytes).decode()
-                txt_href = f'<a href="data:application/octet-stream;base64,{txt_b64}" download="MDSS_{codice}.txt">📄 Scarica il file TXT</a>'
 
-                # File CSV
-                csv_buffer = io.StringIO()
-                writer = csv.writer(csv_buffer)
-                writer.writerow(["Codice intervista", codice])
-                writer.writerow(["Genere", st.session_state.get("genere", "")])
-                writer.writerow(["Punteggio MDSS", st.session_state.punteggio])
-                writer.writerow([])
-                for idx, (key, testo, _, _, _) in enumerate(DOMANDE, 1):
-                    risposta = st.session_state.get(key, "")
-                    writer.writerow([f"{idx}. {testo}", risposta])
-                writer.writerow(["14. Quanti bicchieri di vino/birra bevi al giorno", st.session_state.get("Bevande alcoliche", "")])
-                writer.writerow([])
-                writer.writerow(["Nota", "punteggio di aderenza alla dieta mediterranea (MDSS: Mediterranean Diet Serving Score) calcolato secondo Monteagudo et al (https://doi.org/10.1371/journal.pone.0128594) ed ottenuto tramite web app del dott. Giovanni Buonsanti - Matera"])
-                csv_bytes = csv_buffer.getvalue().encode("utf-8")
-                csv_b64 = base64.b64encode(csv_bytes).decode()
-                csv_href = f'<a href="data:application/octet-stream;base64,{csv_b64}" download="MDSS_{codice}.csv">📊 Scarica il file CSV</a>'
+        if salva and st.session_state.codice:
+            # File TXT
+            txt_buffer = io.StringIO()
+            txt_buffer.write("Questionario di Aderenza alla Dieta Mediterranea (ADM)\n\n")
+            txt_buffer.write(f"Codice intervista: {st.session_state.codice}\n")
+            txt_buffer.write(f"Genere: {st.session_state.get('genere', 'Non specificato')}\n\n")
+            for idx, (key, testo, _, _, _) in enumerate(DOMANDE, 1):
+                risposta = st.session_state.get(key, "Nessuna risposta")
+                txt_buffer.write(f"{idx}. {testo}\nRisposta: {risposta}\n\n")
+            txt_buffer.write(f"14. Quanti bicchieri di vino/birra bevi al giorno\nRisposta: {st.session_state.get('Bevande alcoliche', 'Nessuna risposta')}\n\n")
+            txt_buffer.write(f"Punteggio MDSS: {st.session_state.punteggio} / 24\n\n")
+            txt_buffer.write("punteggio di aderenza alla dieta mediterranea (MDSS: Mediterranean Diet Serving Score) calcolato secondo Monteagudo et al (https://doi.org/10.1371/journal.pone.0128594) ed ottenuto tramite web app del dott. Giovanni Buonsanti - Matera\n")
+            txt_bytes = txt_buffer.getvalue().encode("utf-8")
+            txt_b64 = base64.b64encode(txt_bytes).decode()
+            txt_href = f'<a href="data:application/octet-stream;base64,{txt_b64}" download="MDSS_{st.session_state.codice}.txt">📄 Scarica il file TXT</a>'
 
-                st.markdown(txt_href, unsafe_allow_html=True)
-                st.markdown(csv_href, unsafe_allow_html=True)
+            # File CSV
+            csv_buffer = io.StringIO()
+            writer = csv.writer(csv_buffer)
+            writer.writerow(["Codice intervista", st.session_state.codice])
+            writer.writerow(["Genere", st.session_state.get("genere", "")])
+            writer.writerow(["Punteggio MDSS", st.session_state.punteggio])
+            writer.writerow([])
+            for idx, (key, testo, _, _, _) in enumerate(DOMANDE, 1):
+                risposta = st.session_state.get(key, "")
+                writer.writerow([f"{idx}. {testo}", risposta])
+            writer.writerow(["14. Quanti bicchieri di vino/birra bevi al giorno", st.session_state.get("Bevande alcoliche", "")])
+            writer.writerow([])
+            writer.writerow(["Nota", "punteggio di aderenza alla dieta mediterranea (MDSS: Mediterranean Diet Serving Score) calcolato secondo Monteagudo et al (https://doi.org/10.1371/journal.pone.0128594) ed ottenuto tramite web app del dott. Giovanni Buonsanti - Matera"])
+            csv_bytes = csv_buffer.getvalue().encode("utf-8")
+            csv_b64 = base64.b64encode(csv_bytes).decode()
+            csv_href = f'<a href="data:application/octet-stream;base64,{csv_b64}" download="MDSS_{st.session_state.codice}.csv">📊 Scarica il file CSV</a>'
+
+            st.markdown(txt_href, unsafe_allow_html=True)
+            st.markdown(csv_href, unsafe_allow_html=True)
