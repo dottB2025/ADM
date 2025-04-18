@@ -89,11 +89,14 @@ if st.session_state.calcolato:
     st.markdown(f"**Punteggio MDSS:** {st.session_state.punteggio} / 24")
 
     if st.session_state.punteggio <= 5:
-        st.error("Bassa aderenza alla dieta mediterranea")
+        interpretazione = "Bassa aderenza alla dieta mediterranea"
+        st.error(interpretazione)
     elif st.session_state.punteggio <= 10:
-        st.warning("Media aderenza alla dieta mediterranea")
+        interpretazione = "Media aderenza alla dieta mediterranea"
+        st.warning(interpretazione)
     else:
-        st.success("Alta aderenza alla dieta mediterranea")
+        interpretazione = "Alta aderenza alla dieta mediterranea"
+        st.success(interpretazione)
 
     st.caption("*Fonte: Mediterranean Diet Serving Score (Monteagudo et al., 2015)*")
 
@@ -120,11 +123,13 @@ if st.session_state.calcolato:
             txt_content += f"14. Quanti bicchieri di vino/birra bevi al giorno\nRisposta: {risposta_alcol}\n\n"
             csv_rows.append("Quanti bicchieri di vino/birra bevi al giorno," + risposta_alcol)
 
-            txt_content += f"\nPunteggio MDSS: {st.session_state.punteggio} / 24\n"
+            txt_content += f"\nPunteggio MDSS: {st.session_state.punteggio} / 24\n{interpretazione}\n"
             txt_content += """\n\nPunteggio di aderenza alla dieta mediterranea (MDSS: Mediterranean Diet Serving Score) calcolato secondo Monteagudo et al. (https://doi.org/10.1371/journal.pone.0128594) ed ottenuto tramite web app del dott. Giovanni Buonsanti - Matera"""
 
             csv_rows.insert(1, f"Genere,{st.session_state['genere']}")
             csv_rows.insert(2, f"Data,{data_salvataggio}")
+            csv_rows.append(f"Punteggio MDSS,{st.session_state.punteggio} / 24")
+            csv_rows.append(f"Interpretazione,{interpretazione}")
 
             csv_buffer = io.StringIO()
             for row in csv_rows:
