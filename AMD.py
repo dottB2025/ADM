@@ -100,7 +100,7 @@ if st.session_state.calcolato:
 
     if st.session_state.salvataggio == "No":
         st.session_state.clear()
-        st.experimental_rerun()
+        st.rerun()
 
     elif st.session_state.salvataggio == "Sì":
         codice = st.text_input("Assegna un codice a questa intervista")
