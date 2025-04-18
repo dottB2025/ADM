@@ -33,15 +33,19 @@ errori = []
 with st.form("questionario"):
     for idx, (key, testo, opzioni, corretto, punteggio) in enumerate(DOMANDE, 1):
         is_missing = key in errori
-        label = f"**{idx}. {testo}{' (risposta mancante)' if is_missing else ''}**"
-        st.markdown(f"<div style='color: {'red' if is_missing else 'inherit'}'>{label}</div>", unsafe_allow_html=True)
-        risposta = st.radio("", options=opzioni, key=key, index=None)
+        label_color = 'red' if is_missing else 'inherit'
+        label_suffix = ' <span style="color:red">(risposta mancante)</span>' if is_missing else ''
+        domanda_html = f"<div style='color:{label_color}; margin-bottom: -10px;'><strong>{idx}. {testo}</strong>{label_suffix}</div>"
+        st.markdown(domanda_html, unsafe_allow_html=True)
+        risposta = st.radio(" ", options=opzioni, key=key, index=None)
         risposte[key] = risposta
 
     is_missing_alcol = "Bevande alcoliche" in errori
-    label_alcol = f"**14. Quanti bicchieri di vino/birra bevi al giorno{' (risposta mancante)' if is_missing_alcol else ''}**"
-    st.markdown(f"<div style='color: {'red' if is_missing_alcol else 'inherit'}'>{label_alcol}</div>", unsafe_allow_html=True)
-    risposta_alcol = st.radio("", ["0", "1", "2", "più di 2"], key="Bevande alcoliche", index=None)
+    label_color = 'red' if is_missing_alcol else 'inherit'
+    label_suffix = ' <span style="color:red">(risposta mancante)</span>' if is_missing_alcol else ''
+    domanda_alcol_html = f"<div style='color:{label_color}; margin-bottom: -10px;'><strong>14. Quanti bicchieri di vino/birra bevi al giorno</strong>{label_suffix}</div>"
+    st.markdown(domanda_alcol_html, unsafe_allow_html=True)
+    risposta_alcol = st.radio(" ", ["0", "1", "2", "più di 2"], key="Bevande alcoliche", index=None)
 
     invia = st.form_submit_button("Calcola Punteggio")
 
