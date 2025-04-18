@@ -34,8 +34,7 @@ if "codice" not in st.session_state:
     st.session_state.codice = ""
 
 if not st.session_state.calcolato:
-    sesso = st.radio("Seleziona il tuo sesso", ["Femmina", "Maschio"], horizontal=True, index=None, key="sesso")
-    st.session_state["sesso"] = sesso
+    st.radio("Seleziona il tuo genere", ["Femmina", "Maschio"], horizontal=True, index=None, key="genere")
     risposte = {}
     errori = []
 
@@ -46,7 +45,7 @@ if not st.session_state.calcolato:
             st.markdown("---")
 
         st.markdown("**14. Quanti bicchieri di vino/birra bevi al giorno**")
-        risposta_alcol = st.radio("", ["0", "1", "2", "più di 2"], key="Bevande alcoliche", index=None)
+        st.radio("", ["0", "1", "2", "più di 2"], key="Bevande alcoliche", index=None)
         st.markdown("---")
         invia = st.form_submit_button("Calcola Punteggio")
 
@@ -64,9 +63,9 @@ if not st.session_state.calcolato:
         if st.session_state.get("Bevande alcoliche") is None:
             errori.append((14, "Bevande alcoliche"))
         else:
-            if st.session_state["sesso"] == "Femmina" and st.session_state["Bevande alcoliche"] == "1":
+            if st.session_state["genere"] == "Femmina" and st.session_state["Bevande alcoliche"] == "1":
                 punteggio += 1
-            elif st.session_state["sesso"] == "Maschio" and st.session_state["Bevande alcoliche"] == "2":
+            elif st.session_state["genere"] == "Maschio" and st.session_state["Bevande alcoliche"] == "2":
                 punteggio += 1
 
         if errori:
@@ -106,7 +105,7 @@ if st.session_state.calcolato:
             pdf.set_font("Arial", "", 12)
             pdf.ln(10)
             pdf.cell(0, 10, f"Codice intervista: {st.session_state['codice']}", ln=True)
-            pdf.cell(0, 10, f"Sesso: {st.session_state['sesso']}", ln=True)
+            pdf.cell(0, 10, f"Genere: {st.session_state['genere']}", ln=True)
             pdf.ln(5)
 
             for idx, (key, testo, _, _, _) in enumerate(DOMANDE, 1):
