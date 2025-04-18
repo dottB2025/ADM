@@ -38,17 +38,15 @@ if not st.session_state.calcolato:
     errori = []
 
     with st.form("questionario"):
+        risposte = {}
         for idx, (key, testo, opzioni, _, _) in enumerate(DOMANDE, 1):
             st.markdown(f"**{idx}. {testo}**")
-            valore = st.radio("", options=opzioni, key=key, index=None)
-            if valore is not None:
-                st.session_state[key] = valore
+            valore = st.radio("", options=opzioni, key=f"form_{key}", index=None)
+            risposte[key] = valore
             st.markdown("---")
 
         st.markdown("**14. Quanti bicchieri di vino/birra bevi al giorno**")
-        valore_alcol = st.radio("", ["0", "1", "2", "più di 2"], key="Bevande alcoliche", index=None)
-        if valore_alcol is not None:
-            st.session_state["Bevande alcoliche"] = valore_alcol
+        valore_alcol = st.radio("", ["0", "1", "2", "più di 2"], key="form_Bevande", index=None)
         st.markdown("---")
         invia = st.form_submit_button("Calcola Punteggio")
 
@@ -61,18 +59,21 @@ if not st.session_state.calcolato:
             errori = []
 
             for idx, (key, _, _, corretto, punti) in enumerate(DOMANDE, 1):
-                risposta = st.session_state.get(key)
+                risposta = risposte.get(key)
                 if risposta is None:
                     errori.append((idx, key))
-                elif risposta == corretto:
-                    punteggio += punti
+                else:
+                    st.session_state[key] = risposta
+                    if risposta == corretto:
+                        punteggio += punti
 
-            if st.session_state.get("Bevande alcoliche") is None:
+            if valore_alcol is None:
                 errori.append((14, "Bevande alcoliche"))
             else:
-                if st.session_state["genere"] == "Femmina" and st.session_state["Bevande alcoliche"] == "1":
+                st.session_state["Bevande alcoliche"] = valore_alcol
+                if st.session_state["genere"] == "Femmina" and valore_alcol == "1":
                     punteggio += 1
-                elif st.session_state["genere"] == "Maschio" and st.session_state["Bevande alcoliche"] == "2":
+                elif st.session_state["genere"] == "Maschio" and valore_alcol == "2":
                     punteggio += 1
 
             if errori:
@@ -109,7 +110,6 @@ if st.session_state.calcolato:
             st.session_state.codice = codice
 
         if salva and st.session_state.codice:
-            # File TXT
             txt_buffer = io.StringIO()
             txt_buffer.write("Questionario di Aderenza alla Dieta Mediterranea (ADM)\n\n")
             txt_buffer.write(f"Codice intervista: {st.session_state.codice}\n")
@@ -124,7 +124,6 @@ if st.session_state.calcolato:
             txt_b64 = base64.b64encode(txt_bytes).decode()
             txt_href = f'<a href="data:application/octet-stream;base64,{txt_b64}" download="MDSS_{st.session_state.codice}.txt">📄 Scarica il file TXT</a>'
 
-            # File CSV
             csv_buffer = io.StringIO()
             writer = csv.writer(csv_buffer)
             writer.writerow(["Codice intervista", st.session_state.codice])
