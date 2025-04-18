@@ -34,7 +34,7 @@ if "codice" not in st.session_state:
     st.session_state.codice = ""
 
 if not st.session_state.calcolato:
-    st.radio("Seleziona il tuo genere", ["Femmina", "Maschio"], horizontal=True, index=None, key="genere")
+    genere = st.radio("Seleziona il tuo genere", ["Femmina", "Maschio"], horizontal=True, index=None)
     risposte = {}
     errori = []
 
@@ -50,12 +50,13 @@ if not st.session_state.calcolato:
         invia = st.form_submit_button("Calcola Punteggio")
 
     if invia:
-        punteggio = 0
-        errori = []
-
-        if st.session_state.get("genere") is None:
+        if genere is None:
             st.warning("È obbligatorio selezionare il genere")
         else:
+            st.session_state["genere"] = genere
+            punteggio = 0
+            errori = []
+
             for idx, (key, _, _, corretto, punti) in enumerate(DOMANDE, 1):
                 risposta = st.session_state.get(key)
                 if risposta is None:
