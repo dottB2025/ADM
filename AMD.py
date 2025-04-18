@@ -2,9 +2,10 @@ import streamlit as st
 import base64
 import io
 import csv
+import datetime
 
 st.set_page_config(page_title="Questionario Dieta Mediterranea - MDSS", layout="centered")
-st.title("\U0001F35D Questionario di Aderenza alla Dieta Mediterranea (MDSS)")
+st.title("\U0001F35D Questionario di Aderenza alla Dieta Mediterranea (ADM)")
 
 st.write("""
 Questo questionario valuta la tua aderenza alla Dieta Mediterranea secondo il punteggio **MDSS (Mediterranean Diet Serving Score)**.
@@ -88,11 +89,11 @@ if st.session_state.calcolato:
     st.markdown(f"**Punteggio MDSS:** {st.session_state.punteggio} / 24")
 
     if st.session_state.punteggio <= 5:
-        st.info("Bassa aderenza alla dieta mediterranea")
+        st.error("Bassa aderenza alla dieta mediterranea")
     elif st.session_state.punteggio <= 10:
-        st.info("Media aderenza alla dieta mediterranea")
+        st.warning("Media aderenza alla dieta mediterranea")
     else:
-        st.info("Alta aderenza alla dieta mediterranea")
+        st.success("Alta aderenza alla dieta mediterranea")
 
     st.caption("*Fonte: Mediterranean Diet Serving Score (Monteagudo et al., 2015)*")
 
@@ -106,9 +107,8 @@ if st.session_state.calcolato:
         codice = st.text_input("", key="codice_intervista")
 
         if codice:
-            import datetime
-            data = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-            txt_content = f"""Questionario di Aderenza alla Dieta Mediterranea (ADM)\n\nCodice intervista: {codice}\nGenere: {st.session_state['genere']}\nData: {data}\n\n"""
+            data_salvataggio = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+            txt_content = f"""Questionario di Aderenza alla Dieta Mediterranea (ADM)\n\nCodice intervista: {codice}\nGenere: {st.session_state['genere']}\nData: {data_salvataggio}\n\n"""
             csv_rows = ["Domanda,Risposta"]
 
             for idx, (key, testo, _, _, _) in enumerate(DOMANDE, 1):
@@ -122,6 +122,9 @@ if st.session_state.calcolato:
 
             txt_content += f"\nPunteggio MDSS: {st.session_state.punteggio} / 24\n"
             txt_content += """\n\nPunteggio di aderenza alla dieta mediterranea (MDSS: Mediterranean Diet Serving Score) calcolato secondo Monteagudo et al. (https://doi.org/10.1371/journal.pone.0128594) ed ottenuto tramite web app del dott. Giovanni Buonsanti - Matera"""
+
+            csv_rows.insert(1, f"Genere,{st.session_state['genere']}")
+            csv_rows.insert(2, f"Data,{data_salvataggio}")
 
             csv_buffer = io.StringIO()
             for row in csv_rows:
