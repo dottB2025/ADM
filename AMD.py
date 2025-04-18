@@ -7,7 +7,6 @@ st.write("""
 Questo questionario valuta la tua aderenza alla Dieta Mediterranea secondo il punteggio **MDSS (Mediterranean Diet Serving Score)**.
 """)
 
-# Lista delle domande con le opzioni e la logica di punteggio
 DOMANDE = [
     ("Frutta", "Quante porzioni di frutta consumi per pasto principale (colazione, pranzo e cena)?", ["0", "1-2", "maggiore di 2"], "1-2", 3),
     ("Verdura", "Quante porzioni di verdura consumi per pasto principale (colazione, pranzo e cena)?", ["2 o più", "meno di 2"], "2 o più", 3),
@@ -29,43 +28,71 @@ st.header("\U0001F4CB Domande")
 sesso = st.radio("Seleziona il tuo sesso:", ["Femmina", "Maschio"], horizontal=True)
 
 risposte = {}
+errori = []
 
-# Form
 with st.form("questionario"):
-    for key, testo, opzioni, corretto, punteggio in DOMANDE:
-        risposta = st.radio(testo, opzioni, key=key)
+    for idx, (key, testo, opzioni, corretto, punteggio) in enumerate(DOMANDE, 1):
+        risposta = st.radio(
+            f"{idx}. {testo}",
+            options=opzioni,
+            key=key,
+            index=None,
+            help="Seleziona una risposta"
+        )
         risposte[key] = risposta
-    risposta_alcol = st.radio("Quanti bicchieri di vino/birra bevi al giorno?", ["0", "1", "2", "più di 2"], key="Bevande alcoliche")
+    risposta_alcol = st.radio("Quanti bicchieri di vino/birra bevi al giorno?", ["0", "1", "2", "più di 2"], key="Bevande alcoliche", index=None)
     invia = st.form_submit_button("Calcola Punteggio")
 
 if invia:
     punteggio_totale = 0
+    errori.clear()
 
-    for key, testo, opzioni, corretto, punteggio in DOMANDE:
-        risposta = risposte[key]
-        if isinstance(corretto, list):
+    for idx, (key, _, _, corretto, punteggio) in enumerate(DOMANDE, 1):
+        risposta = risposte.get(key)
+        if risposta is None:
+            errori.append(idx)
+        elif isinstance(corretto, list):
             if risposta in corretto:
                 punteggio_totale += punteggio
         else:
             if risposta == corretto:
                 punteggio_totale += punteggio
 
-    # Logica punteggio per alcol
-    if (sesso == "Femmina" and risposta_alcol == "1"):
-        punteggio_totale += 1
-    elif (sesso == "Maschio" and risposta_alcol == "2"):
-        punteggio_totale += 1
+    if risposta_alcol is None:
+        errori.append("bevande fermentate")
+    else:
+        if (sesso == "Femmina" and risposta_alcol == "1"):
+            punteggio_totale += 1
+        elif (sesso == "Maschio" and risposta_alcol == "2"):
+            punteggio_totale += 1
 
     st.subheader("\U0001F4C8 Risultato")
-    st.markdown(f"**Punteggio MDSS:** {punteggio_totale} / 24")
 
-    if punteggio_totale <= 5:
-        livello = "Bassa aderenza alla dieta mediterranea"
-    elif punteggio_totale <= 10:
-        livello = "Media aderenza alla dieta mediterranea"
+    if errori:
+        for idx in errori:
+            if isinstance(idx, int):
+                st.warning(f"Manca la risposta alla domanda n. {idx}")
+            else:
+                st.warning("Manca la risposta alla domanda su vino/birra")
     else:
-        livello = "Alta aderenza alla dieta mediterranea"
+        st.markdown(f"**Punteggio MDSS:** {punteggio_totale} / 24")
 
-    st.info(f"**{livello}**")
+        if punteggio_totale <= 5:
+            livello = "Bassa aderenza alla dieta mediterranea"
+        elif punteggio_totale <= 10:
+            livello = "Media aderenza alla dieta mediterranea"
+        else:
+            livello = "Alta aderenza alla dieta mediterranea"
+
+        st.info(f"**{livello}**")
 
     st.caption("*Fonte: Mediterranean Diet Serving Score (Monteagudo et al., 2015)*")
+
+    if errori:
+        st.markdown("""
+        <style>
+        div[data-testid="stRadio"] > label {
+            color: red !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
