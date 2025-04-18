@@ -26,107 +26,103 @@ DOMANDE = [
     ("Dolci", "Quante porzioni di dolci (zucchero, caramelle, pasticcini, succhi zuccherati, bevande analcoliche) consumi a settimana", ["2 o meno", "più di 2"], "2 o meno", 1),
 ]
 
-st.header("\U0001F4CB Domande")
+if "calcolato" not in st.session_state:
+    st.session_state.calcolato = False
+if "salvataggio" not in st.session_state:
+    st.session_state.salvataggio = None
+if "codice" not in st.session_state:
+    st.session_state.codice = ""
 
-sesso = st.radio("Seleziona il tuo sesso", ["Femmina", "Maschio"], horizontal=True, index=None)
+if not st.session_state.calcolato:
+    sesso = st.radio("Seleziona il tuo sesso", ["Femmina", "Maschio"], horizontal=True, index=None, key="sesso")
+    risposte = {}
+    errori = []
 
-risposte = {}
-errori = []
+    with st.form("questionario"):
+        for idx, (key, testo, opzioni, _, _) in enumerate(DOMANDE, 1):
+            st.markdown(f"**{idx}. {testo}**")
+            risposte[key] = st.radio("", options=opzioni, key=key, index=None)
+            st.markdown("---")
 
-with st.form("questionario"):
-    for idx, (key, testo, opzioni, corretto, punteggio) in enumerate(DOMANDE, 1):
-        is_missing = key in [e[1] for e in errori]
-        suffix = "<span style='color:red'> (risposta mancante)</span>" if is_missing else ""
-        st.markdown(f"<div style='font-weight:bold; color:{'red' if is_missing else 'black'}'>{idx}. {testo}{suffix}</div>", unsafe_allow_html=True)
-        risposta = st.radio("", options=opzioni, key=key, index=None)
-        risposte[key] = risposta
+        st.markdown("**14. Quanti bicchieri di vino/birra bevi al giorno**")
+        risposta_alcol = st.radio("", ["0", "1", "2", "più di 2"], key="Bevande alcoliche", index=None)
         st.markdown("---")
+        invia = st.form_submit_button("Calcola Punteggio")
 
-    is_missing_alcol = "Bevande alcoliche" in [e[1] for e in errori]
-    suffix_alcol = "<span style='color:red'> (risposta mancante)</span>" if is_missing_alcol else ""
-    st.markdown(f"<div style='font-weight:bold; color:{'red' if is_missing_alcol else 'black'}'>14. Quanti bicchieri di vino/birra bevi al giorno{suffix_alcol}</div>", unsafe_allow_html=True)
-    risposta_alcol = st.radio("", ["0", "1", "2", "più di 2"], key="Bevande alcoliche", index=None)
-    st.markdown("---")
-    invia = st.form_submit_button("Calcola Punteggio")
+    if invia:
+        punteggio = 0
+        errori = []
 
-if invia:
-    punteggio_totale = 0
-    errori.clear()
+        for idx, (key, _, _, corretto, punti) in enumerate(DOMANDE, 1):
+            risposta = st.session_state.get(key)
+            if risposta is None:
+                errori.append((idx, key))
+            elif risposta == corretto:
+                punteggio += punti
 
-    for idx, (key, _, _, corretto, punteggio) in enumerate(DOMANDE, 1):
-        risposta = risposte.get(key)
-        if risposta is None:
-            errori.append((idx, key))
-        elif isinstance(corretto, list):
-            if risposta in corretto:
-                punteggio_totale += punteggio
+        if st.session_state.get("Bevande alcoliche") is None:
+            errori.append((14, "Bevande alcoliche"))
         else:
-            if risposta == corretto:
-                punteggio_totale += punteggio
+            if st.session_state.sesso == "Femmina" and st.session_state["Bevande alcoliche"] == "1":
+                punteggio += 1
+            elif st.session_state.sesso == "Maschio" and st.session_state["Bevande alcoliche"] == "2":
+                punteggio += 1
 
-    if risposta_alcol is None:
-        errori.append((14, "Bevande alcoliche"))
-    else:
-        if (sesso == "Femmina" and risposta_alcol == "1"):
-            punteggio_totale += 1
-        elif (sesso == "Maschio" and risposta_alcol == "2"):
-            punteggio_totale += 1
+        if errori:
+            for idx, _ in errori:
+                st.warning(f"Manca la risposta alla domanda n. {idx}")
+        else:
+            st.session_state.calcolato = True
+            st.session_state.punteggio = punteggio
 
+if st.session_state.calcolato:
     st.subheader("\U0001F4C8 Risultato")
+    st.markdown(f"**Punteggio MDSS:** {st.session_state.punteggio} / 24")
 
-    if errori:
-        for numero, _ in errori:
-            st.warning(f"Manca la risposta alla domanda n. {numero}")
+    if st.session_state.punteggio <= 5:
+        st.info("Bassa aderenza alla dieta mediterranea")
+    elif st.session_state.punteggio <= 10:
+        st.info("Media aderenza alla dieta mediterranea")
     else:
-        st.markdown(f"**Punteggio MDSS:** {punteggio_totale} / 24")
+        st.info("Alta aderenza alla dieta mediterranea")
 
-        if punteggio_totale <= 5:
-            livello = "Bassa aderenza alla dieta mediterranea"
-        elif punteggio_totale <= 10:
-            livello = "Media aderenza alla dieta mediterranea"
-        else:
-            livello = "Alta aderenza alla dieta mediterranea"
+    st.caption("*Fonte: Mediterranean Diet Serving Score (Monteagudo et al., 2015)*")
 
-        st.info(f"**{livello}**")
+    st.session_state.salvataggio = st.radio("Vuoi salvare il questionario?", ["Sì", "No"], index=None)
 
-        st.caption("*Fonte: Mediterranean Diet Serving Score (Monteagudo et al., 2015)*")
+    if st.session_state.salvataggio == "No":
+        st.session_state.clear()
+        st.experimental_rerun()
 
-        salva = st.radio("Vuoi salvare il questionario?", ["Sì", "No"], index=None)
+    elif st.session_state.salvataggio == "Sì":
+        st.session_state.codice = st.text_input("Assegna un codice a questa intervista")
 
-        if salva == "No":
-            st.experimental_rerun()
-        elif salva == "Sì":
-            codice = st.text_input("Assegna un codice a questa intervista")
-            if codice:
-                if st.button("Salva"):
-                    pdf = FPDF()
-                    pdf.add_page()
-                    pdf.set_font("Arial", "B", 14)
-                    pdf.cell(0, 10, "Questionario di Aderenza alla Dieta Mediterranea (ADM)", ln=True, align="C")
+        if st.session_state.codice and st.button("Salva"):
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_font("Arial", "B", 14)
+            pdf.cell(0, 10, "Questionario di Aderenza alla Dieta Mediterranea (ADM)", ln=True, align="C")
+            pdf.set_font("Arial", "", 12)
+            pdf.ln(10)
+            pdf.cell(0, 10, f"Codice intervista: {st.session_state.codice}", ln=True)
+            pdf.cell(0, 10, f"Sesso: {st.session_state.sesso}", ln=True)
+            pdf.ln(5)
 
-                    pdf.set_font("Arial", "", 12)
-                    pdf.ln(10)
-                    pdf.cell(0, 10, f"Codice intervista: {codice}", ln=True)
-                    pdf.cell(0, 10, f"Sesso: {sesso}", ln=True)
-                    pdf.ln(5)
+            for idx, (key, testo, _, _, _) in enumerate(DOMANDE, 1):
+                risposta = st.session_state.get(key, "Nessuna risposta")
+                pdf.multi_cell(0, 10, f"{idx}. {testo}\nRisposta: {risposta}", align="L")
+                pdf.ln(1)
 
-                    for idx, (key, testo, _, _, _) in enumerate(DOMANDE, 1):
-                        risposta = risposte.get(key, "Nessuna risposta")
-                        pdf.multi_cell(0, 10, f"{idx}. {testo}\nRisposta: {risposta}", align="L")
-                        pdf.ln(1)
+            pdf.multi_cell(0, 10, f"14. Quanti bicchieri di vino/birra bevi al giorno\nRisposta: {st.session_state.get('Bevande alcoliche', 'Nessuna risposta')}", align="L")
+            pdf.ln(5)
+            pdf.set_font("Arial", "B", 12)
+            pdf.cell(0, 10, f"Punteggio MDSS: {st.session_state.punteggio} / 24", ln=True)
+            pdf.ln(10)
+            pdf.set_font("Arial", "I", 10)
+            pdf.multi_cell(0, 10, "punteggio di aderenza alla dieta mediterranea (MDSS: Mediterranean Diet Serving Score) calcolato secondo Monteagudo et al (https://doi.org/10.1371/journal.pone.0128594) ed ottenuto tramite web app del dott. Giovanni Buonsanti - Matera")
 
-                    pdf.multi_cell(0, 10, f"14. Quanti bicchieri di vino/birra bevi al giorno\nRisposta: {risposta_alcol}", align="L")
-                    pdf.ln(5)
-
-                    pdf.set_font("Arial", "B", 12)
-                    pdf.cell(0, 10, f"Punteggio MDSS: {punteggio_totale} / 24", ln=True)
-                    pdf.ln(10)
-
-                    pdf.set_font("Arial", "I", 10)
-                    pdf.multi_cell(0, 10, "punteggio di aderenza alla dieta mediterranea (MDSS: Mediterranean Diet Serving Score) calcolato secondo Monteagudo et al (https://doi.org/10.1371/journal.pone.0128594) ed ottenuto tramite web app del dott. Giovanni Buonsanti - Matera")
-
-                    buffer = io.BytesIO()
-                    pdf.output(buffer)
-                    b64 = base64.b64encode(buffer.getvalue()).decode()
-                    href = f'<a href="data:application/octet-stream;base64,{b64}" download="MDSS_{codice}.pdf">📄 Scarica il PDF</a>'
-                    st.markdown(href, unsafe_allow_html=True)
+            buffer = io.BytesIO()
+            pdf.output(buffer)
+            b64 = base64.b64encode(buffer.getvalue()).decode()
+            href = f'<a href="data:application/octet-stream;base64,{b64}" download="MDSS_{st.session_state.codice}.pdf">📄 Scarica il PDF</a>'
+            st.markdown(href, unsafe_allow_html=True)
