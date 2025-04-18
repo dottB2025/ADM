@@ -33,13 +33,15 @@ errori = []
 with st.form("questionario"):
     for idx, (key, testo, opzioni, corretto, punteggio) in enumerate(DOMANDE, 1):
         is_missing = key in errori
-        domanda = f"{idx}. {testo}{' (risposta mancante)' if is_missing else ''}"
-        risposta = st.radio(domanda, options=opzioni, key=key, index=None)
+        label = f"**{idx}. {testo}{' (risposta mancante)' if is_missing else ''}**"
+        st.markdown(f"<div style='color: {'red' if is_missing else 'inherit'}'>{label}</div>", unsafe_allow_html=True)
+        risposta = st.radio("", options=opzioni, key=key, index=None)
         risposte[key] = risposta
 
     is_missing_alcol = "Bevande alcoliche" in errori
-    domanda_alcol = f"14. Quanti bicchieri di vino/birra bevi al giorno{' (risposta mancante)' if is_missing_alcol else ''}"
-    risposta_alcol = st.radio(domanda_alcol, ["0", "1", "2", "più di 2"], key="Bevande alcoliche", index=None)
+    label_alcol = f"**14. Quanti bicchieri di vino/birra bevi al giorno{' (risposta mancante)' if is_missing_alcol else ''}**"
+    st.markdown(f"<div style='color: {'red' if is_missing_alcol else 'inherit'}'>{label_alcol}</div>", unsafe_allow_html=True)
+    risposta_alcol = st.radio("", ["0", "1", "2", "più di 2"], key="Bevande alcoliche", index=None)
 
     invia = st.form_submit_button("Calcola Punteggio")
 
