@@ -1,4 +1,7 @@
 import streamlit as st
+from fpdf import FPDF
+import base64
+import io
 
 st.set_page_config(page_title="Questionario Dieta Mediterranea - MDSS", layout="centered")
 st.title("\U0001F35D Questionario di Aderenza alla Dieta Mediterranea (MDSS)")
@@ -86,4 +89,44 @@ if invia:
 
         st.info(f"**{livello}**")
 
-    st.caption("*Fonte: Mediterranean Diet Serving Score (Monteagudo et al., 2015)*")
+        st.caption("*Fonte: Mediterranean Diet Serving Score (Monteagudo et al., 2015)*")
+
+        salva = st.radio("Vuoi salvare il questionario?", ["Sì", "No"], index=None)
+
+        if salva == "No":
+            st.experimental_rerun()
+        elif salva == "Sì":
+            codice = st.text_input("Assegna un codice a questa intervista")
+            if codice:
+                if st.button("Salva"):
+                    pdf = FPDF()
+                    pdf.add_page()
+                    pdf.set_font("Arial", "B", 14)
+                    pdf.cell(0, 10, "Questionario di Aderenza alla Dieta Mediterranea (ADM)", ln=True, align="C")
+
+                    pdf.set_font("Arial", "", 12)
+                    pdf.ln(10)
+                    pdf.cell(0, 10, f"Codice intervista: {codice}", ln=True)
+                    pdf.cell(0, 10, f"Sesso: {sesso}", ln=True)
+                    pdf.ln(5)
+
+                    for idx, (key, testo, _, _, _) in enumerate(DOMANDE, 1):
+                        risposta = risposte.get(key, "Nessuna risposta")
+                        pdf.multi_cell(0, 10, f"{idx}. {testo}\nRisposta: {risposta}", align="L")
+                        pdf.ln(1)
+
+                    pdf.multi_cell(0, 10, f"14. Quanti bicchieri di vino/birra bevi al giorno\nRisposta: {risposta_alcol}", align="L")
+                    pdf.ln(5)
+
+                    pdf.set_font("Arial", "B", 12)
+                    pdf.cell(0, 10, f"Punteggio MDSS: {punteggio_totale} / 24", ln=True)
+                    pdf.ln(10)
+
+                    pdf.set_font("Arial", "I", 10)
+                    pdf.multi_cell(0, 10, "punteggio di aderenza alla dieta mediterranea (MDSS: Mediterranean Diet Serving Score) calcolato secondo Monteagudo et al (https://doi.org/10.1371/journal.pone.0128594) ed ottenuto tramite web app del dott. Giovanni Buonsanti - Matera")
+
+                    buffer = io.BytesIO()
+                    pdf.output(buffer)
+                    b64 = base64.b64encode(buffer.getvalue()).decode()
+                    href = f'<a href="data:application/octet-stream;base64,{b64}" download="MDSS_{codice}.pdf">📄 Scarica il PDF</a>'
+                    st.markdown(href, unsafe_allow_html=True)
