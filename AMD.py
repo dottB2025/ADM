@@ -32,19 +32,10 @@ errori = []
 
 with st.form("questionario"):
     for idx, (key, testo, opzioni, corretto, punteggio) in enumerate(DOMANDE, 1):
-        is_missing = key in errori
-        domanda_style = f"color:red; font-weight:bold; margin-bottom:2px;" if is_missing else "font-weight:bold; margin-bottom:2px;"
-        suffisso = " (risposta mancante)" if is_missing else ""
-        st.markdown(f"<div style='{domanda_style}'>{idx}. {testo}{suffisso}</div>", unsafe_allow_html=True)
-        risposta = st.radio("", options=opzioni, key=key, index=None)
+        risposta = st.radio(f"{idx}. {testo}", options=opzioni, key=key, index=None)
         risposte[key] = risposta
 
-    is_missing_alcol = "Bevande alcoliche" in errori
-    domanda_style_alcol = f"color:red; font-weight:bold; margin-bottom:2px;" if is_missing_alcol else "font-weight:bold; margin-bottom:2px;"
-    suffisso_alcol = " (risposta mancante)" if is_missing_alcol else ""
-    st.markdown(f"<div style='{domanda_style_alcol}'>14. Quanti bicchieri di vino/birra bevi al giorno{suffisso_alcol}</div>", unsafe_allow_html=True)
-    risposta_alcol = st.radio("", ["0", "1", "2", "più di 2"], key="Bevande alcoliche", index=None)
-
+    risposta_alcol = st.radio("14. Quanti bicchieri di vino/birra bevi al giorno", ["0", "1", "2", "più di 2"], key="Bevande alcoliche", index=None)
     invia = st.form_submit_button("Calcola Punteggio")
 
 if invia:
@@ -54,7 +45,7 @@ if invia:
     for idx, (key, _, _, corretto, punteggio) in enumerate(DOMANDE, 1):
         risposta = risposte.get(key)
         if risposta is None:
-            errori.append(key)
+            errori.append((idx, key))
         elif isinstance(corretto, list):
             if risposta in corretto:
                 punteggio_totale += punteggio
@@ -63,7 +54,7 @@ if invia:
                 punteggio_totale += punteggio
 
     if risposta_alcol is None:
-        errori.append("Bevande alcoliche")
+        errori.append((14, "Bevande alcoliche"))
     else:
         if (sesso == "Femmina" and risposta_alcol == "1"):
             punteggio_totale += 1
@@ -73,11 +64,8 @@ if invia:
     st.subheader("\U0001F4C8 Risultato")
 
     if errori:
-        for idx, (key, _, _, _, _) in enumerate(DOMANDE, 1):
-            if key in errori:
-                st.warning(f"Manca la risposta alla domanda n. {idx}")
-        if "Bevande alcoliche" in errori:
-            st.warning("Manca la risposta alla domanda n. 14")
+        for numero, _ in errori:
+            st.warning(f"Manca la risposta alla domanda n. {numero}")
     else:
         st.markdown(f"**Punteggio MDSS:** {punteggio_totale} / 24")
 
