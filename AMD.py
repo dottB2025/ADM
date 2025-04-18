@@ -35,7 +35,7 @@ with st.form("questionario"):
     for key, testo, opzioni, corretto, punteggio in DOMANDE:
         risposta = st.radio(testo, opzioni, key=key)
         risposte[key] = risposta
-    risposta_alcol = st.radio("Quanti bicchieri di vino/birra bevi al giorno?", ["0", "1", "2", "più di 2"], key="Bevande alcoliche") consumi al giorno?", ["0", "1", "2", ">2"], key="Bevande alcoliche")
+    risposta_alcol = st.radio("Quanti bicchieri di vino/birra bevi al giorno?", ["0", "1", "2", "più di 2"], key="Bevande alcoliche")
     invia = st.form_submit_button("Calcola Punteggio")
 
 if invia:
@@ -50,7 +50,7 @@ if invia:
             if risposta == corretto:
                 punteggio_totale += punteggio
 
-    # Logica per punteggio alcol in base al sesso
+    # Logica punteggio per alcol
     if (sesso == "Femmina" and risposta_alcol == "1"):
         punteggio_totale += 1
     elif (sesso == "Maschio" and risposta_alcol == "2"):
