@@ -8,19 +8,19 @@ Questo questionario valuta la tua aderenza alla Dieta Mediterranea secondo il pu
 """)
 
 DOMANDE = [
-    ("Frutta", "1. Quante porzioni di frutta consumi per pasto principale (colazione, pranzo e cena)", ["0", "1-2", "maggiore di 2"], "1-2", 3),
-    ("Verdura", "2. Quante porzioni di verdura consumi per pasto principale (colazione, pranzo e cena)", ["2 o più", "meno di 2"], "2 o più", 3),
-    ("Cereali", "3. Quante porzioni di cereali (pane, cereali per la colazione, riso e pasta) consumi per pasto principale", ["0", "1-2", "più di 2"], "1-2", 3),
-    ("Patate", "4. Quante porzioni di patate consumi a settimana", ["3 o meno", "più di 3"], "3 o meno", 1),
-    ("Olio d’oliva", "5. Usi olio d’oliva (su insalate, pane o per friggere) ad ogni pasto principale", ["Sì", "No"], "Sì", 3),
-    ("Frutta secca", "6. Quante porzioni di frutta secca consumi al giorno", ["0", "1-2", "più di 2"], "1-2", 2),
-    ("Latticini", "7. Quante porzioni di latticini (latte, yogurt, formaggio, gelato) consumi al giorno", ["1", "2", "più di 2"], "2", 2),
-    ("Legumi", "8. Quante porzioni di legumi consumi a settimana", ["meno di 2", "2 o più"], "2 o più", 1),
-    ("Uova", "9. Quante porzioni di uova consumi a settimana", ["meno di 2", "2-4", "4 o più"], "2-4", 1),
-    ("Pesce", "10. Quante porzioni di pesce consumi a settimana", ["meno di due", "2 o più"], "2 o più", 1),
-    ("Carne bianca", "11. Quante porzioni di carne bianca (pollame) consumi a settimana", ["meno di 2", "2", "più di 2"], "2", 1),
-    ("Carne rossa", "12. Quante porzioni di carne rossa (maiale, manzo o agnello) consumi a settimana", ["meno di 2", "2 o più"], "meno di 2", 1),
-    ("Dolci", "13. Quante porzioni di dolci (zucchero, caramelle, pasticcini, succhi zuccherati, bevande analcoliche) consumi a settimana", ["2 o meno", "più di 2"], "2 o meno", 1),
+    ("Frutta", "Quante porzioni di frutta consumi per pasto principale (colazione, pranzo e cena)", ["0", "1-2", "maggiore di 2"], "1-2", 3),
+    ("Verdura", "Quante porzioni di verdura consumi per pasto principale (colazione, pranzo e cena)", ["2 o più", "meno di 2"], "2 o più", 3),
+    ("Cereali", "Quante porzioni di cereali (pane, cereali per la colazione, riso e pasta) consumi per pasto principale", ["0", "1-2", "più di 2"], "1-2", 3),
+    ("Patate", "Quante porzioni di patate consumi a settimana", ["3 o meno", "più di 3"], "3 o meno", 1),
+    ("Olio d’oliva", "Usi olio d’oliva (su insalate, pane o per friggere) ad ogni pasto principale", ["Sì", "No"], "Sì", 3),
+    ("Frutta secca", "Quante porzioni di frutta secca consumi al giorno", ["0", "1-2", "più di 2"], "1-2", 2),
+    ("Latticini", "Quante porzioni di latticini (latte, yogurt, formaggio, gelato) consumi al giorno", ["1", "2", "più di 2"], "2", 2),
+    ("Legumi", "Quante porzioni di legumi consumi a settimana", ["meno di 2", "2 o più"], "2 o più", 1),
+    ("Uova", "Quante porzioni di uova consumi a settimana", ["meno di 2", "2-4", "4 o più"], "2-4", 1),
+    ("Pesce", "Quante porzioni di pesce consumi a settimana", ["meno di due", "2 o più"], "2 o più", 1),
+    ("Carne bianca", "Quante porzioni di carne bianca (pollame) consumi a settimana", ["meno di 2", "2", "più di 2"], "2", 1),
+    ("Carne rossa", "Quante porzioni di carne rossa (maiale, manzo o agnello) consumi a settimana", ["meno di 2", "2 o più"], "meno di 2", 1),
+    ("Dolci", "Quante porzioni di dolci (zucchero, caramelle, pasticcini, succhi zuccherati, bevande analcoliche) consumi a settimana", ["2 o meno", "più di 2"], "2 o meno", 1),
 ]
 
 st.header("\U0001F4CB Domande")
@@ -34,17 +34,11 @@ with st.form("questionario"):
     for idx, (key, testo, opzioni, corretto, punteggio) in enumerate(DOMANDE, 1):
         is_missing = key in errori
         domanda = f"{idx}. {testo}{' (risposta mancante)' if is_missing else ''}"
-        style_id = f"style_{key}"
-        if is_missing:
-            st.markdown(f"<style>#{style_id} > label {{ color: red !important; }}</style>", unsafe_allow_html=True)
-        with st.container():
-            risposta = st.radio(domanda, options=opzioni, key=key, index=None)
+        risposta = st.radio(domanda, options=opzioni, key=key, index=None)
         risposte[key] = risposta
 
     is_missing_alcol = "Bevande alcoliche" in errori
     domanda_alcol = f"14. Quanti bicchieri di vino/birra bevi al giorno{' (risposta mancante)' if is_missing_alcol else ''}"
-    if is_missing_alcol:
-        st.markdown("<style>#style_Bevande > label { color: red !important; }</style>", unsafe_allow_html=True)
     risposta_alcol = st.radio(domanda_alcol, ["0", "1", "2", "più di 2"], key="Bevande alcoliche", index=None)
 
     invia = st.form_submit_button("Calcola Punteggio")
