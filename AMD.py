@@ -1,8 +1,6 @@
 import streamlit as st
-from fpdf import FPDF
 import base64
 import io
-import os
 
 st.set_page_config(page_title="Questionario Dieta Mediterranea - MDSS", layout="centered")
 st.title("\U0001F35D Questionario di Aderenza alla Dieta Mediterranea (MDSS)")
@@ -103,36 +101,20 @@ if st.session_state.calcolato:
         st.session_state.codice = st.text_input("Assegna un codice a questa intervista")
 
         if st.session_state.codice and st.button("Salva"):
-            from fpdf import FPDF
-            from fpdf.fonts import FontFace
-            
-            pdf = FPDF()
-            pdf.add_page()
-            pdf.set_font("helvetica", size=12)
-            pdf.set_font(family="helvetica", style="B", size=14)
-            pdf.cell(0, 10, "Questionario di Aderenza alla Dieta Mediterranea (ADM)", ln=True, align="C")
-            pdf.set_font("helvetica", size=12)
-            pdf.ln(10)
-            pdf.cell(0, 10, f"Codice intervista: {st.session_state['codice']}", ln=True)
-            genere_value = st.session_state.get("genere", "Non specificato")
-            pdf.cell(0, 10, f"Genere: {genere_value}", ln=True)
-            pdf.ln(5)
+            buffer = io.StringIO()
+            buffer.write("Questionario di Aderenza alla Dieta Mediterranea (ADM)\n\n")
+            buffer.write(f"Codice intervista: {st.session_state['codice']}\n")
+            buffer.write(f"Genere: {st.session_state.get('genere', 'Non specificato')}\n\n")
 
             for idx, (key, testo, _, _, _) in enumerate(DOMANDE, 1):
                 risposta = st.session_state.get(key, "Nessuna risposta")
-                pdf.multi_cell(0, 10, f"{idx}. {testo}\nRisposta: {risposta}", align="L")
-                pdf.ln(1)
+                buffer.write(f"{idx}. {testo}\nRisposta: {risposta}\n\n")
 
-            pdf.multi_cell(0, 10, f"14. Quanti bicchieri di vino/birra bevi al giorno\nRisposta: {st.session_state.get('Bevande alcoliche', 'Nessuna risposta')}", align="L")
-            pdf.ln(5)
-            pdf.set_font("helvetica", style="B", size=12)
-            pdf.cell(0, 10, f"Punteggio MDSS: {st.session_state.punteggio} / 24", ln=True)
-            pdf.ln(10)
-            pdf.set_font("helvetica", style="I", size=10)
-            pdf.multi_cell(0, 10, "punteggio di aderenza alla dieta mediterranea (MDSS: Mediterranean Diet Serving Score) calcolato secondo Monteagudo et al (https://doi.org/10.1371/journal.pone.0128594) ed ottenuto tramite web app del dott. Giovanni Buonsanti - Matera")
+            buffer.write(f"14. Quanti bicchieri di vino/birra bevi al giorno\nRisposta: {st.session_state.get('Bevande alcoliche', 'Nessuna risposta')}\n\n")
+            buffer.write(f"Punteggio MDSS: {st.session_state.punteggio} / 24\n\n")
+            buffer.write("punteggio di aderenza alla dieta mediterranea (MDSS: Mediterranean Diet Serving Score) calcolato secondo Monteagudo et al (https://doi.org/10.1371/journal.pone.0128594) ed ottenuto tramite web app del dott. Giovanni Buonsanti - Matera\n")
 
-            buffer = io.BytesIO()
-            pdf.output(buffer)
-            b64 = base64.b64encode(buffer.getvalue()).decode()
-            href = f'<a href="data:application/octet-stream;base64,{b64}" download="MDSS_{st.session_state.codice}.pdf">📄 Scarica il PDF</a>'
+            txt_bytes = buffer.getvalue().encode("utf-8")
+            b64 = base64.b64encode(txt_bytes).decode()
+            href = f'<a href="data:application/octet-stream;base64,{b64}" download="MDSS_{st.session_state.codice}.txt">📄 Scarica il file TXT</a>'
             st.markdown(href, unsafe_allow_html=True)
