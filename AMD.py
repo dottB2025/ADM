@@ -93,3 +93,28 @@ if st.session_state.calcolato:
         st.info("Alta aderenza alla dieta mediterranea")
 
     st.caption("*Fonte: Mediterranean Diet Serving Score (Monteagudo et al., 2015)*")
+
+    st.markdown("---")
+    st.markdown("**Assegna un codice a questa intervista**")
+    codice = st.text_input("", key="codice_intervista")
+
+    if codice:
+        import datetime
+        data = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+        txt_content = f"""Questionario di Aderenza alla Dieta Mediterranea (ADM)\n\nCodice intervista: {codice}\nGenere: {st.session_state['genere']}\nData: {data}\n\n"""
+        csv_content = "Domanda,Risposta\n"
+
+        for idx, (key, testo, _, _, _) in enumerate(DOMANDE, 1):
+            risposta = st.session_state.get(key, "")
+            txt_content += f"{idx}. {testo}\nRisposta: {risposta}\n\n"
+            csv_content += f"{testo},{risposta}\n"
+
+        risposta_alcol = st.session_state.get("Bevande alcoliche", "")
+        txt_content += f"14. Quanti bicchieri di vino/birra bevi al giorno\nRisposta: {risposta_alcol}\n\n"
+        csv_content += "Quanti bicchieri di vino/birra bevi al giorno," + risposta_alcol + "\n"
+
+        txt_content += f"\nPunteggio MDSS: {st.session_state.punteggio} / 24\n"
+        txt_content += """\n\nPunteggio di aderenza alla dieta mediterranea (MDSS: Mediterranean Diet Serving Score) calcolato secondo Monteagudo et al. (https://doi.org/10.1371/journal.pone.0128594) ed ottenuto tramite web app del dott. Giovanni Buonsanti - Matera"""
+
+        st.download_button("⬇️ Scarica in formato TXT", data=txt_content, file_name=f"MDSS_{codice}.txt")
+        st.download_button("⬇️ Scarica in formato CSV", data=csv_content, file_name=f"MDSS_{codice}.csv", mime="text/csv")
