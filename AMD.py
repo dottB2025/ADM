@@ -63,9 +63,9 @@ if not st.session_state.calcolato:
         if st.session_state.get("Bevande alcoliche") is None:
             errori.append((14, "Bevande alcoliche"))
         else:
-            if st.session_state.sesso == "Femmina" and st.session_state["Bevande alcoliche"] == "1":
+            if st.session_state["sesso"] == "Femmina" and st.session_state["Bevande alcoliche"] == "1":
                 punteggio += 1
-            elif st.session_state.sesso == "Maschio" and st.session_state["Bevande alcoliche"] == "2":
+            elif st.session_state["sesso"] == "Maschio" and st.session_state["Bevande alcoliche"] == "2":
                 punteggio += 1
 
         if errori:
@@ -104,8 +104,8 @@ if st.session_state.calcolato:
             pdf.cell(0, 10, "Questionario di Aderenza alla Dieta Mediterranea (ADM)", ln=True, align="C")
             pdf.set_font("Arial", "", 12)
             pdf.ln(10)
-            pdf.cell(0, 10, f"Codice intervista: {st.session_state.codice}", ln=True)
-            pdf.cell(0, 10, f"Sesso: {st.session_state.sesso}", ln=True)
+            pdf.cell(0, 10, f"Codice intervista: {st.session_state['codice']}", ln=True)
+            pdf.cell(0, 10, f"Sesso: {st.session_state['sesso']}", ln=True)
             pdf.ln(5)
 
             for idx, (key, testo, _, _, _) in enumerate(DOMANDE, 1):
