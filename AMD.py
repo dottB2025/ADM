@@ -35,6 +35,7 @@ if "codice" not in st.session_state:
 
 if not st.session_state.calcolato:
     sesso = st.radio("Seleziona il tuo sesso", ["Femmina", "Maschio"], horizontal=True, index=None, key="sesso")
+    st.session_state["sesso"] = sesso
     risposte = {}
     errori = []
 
