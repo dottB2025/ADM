@@ -53,27 +53,30 @@ if not st.session_state.calcolato:
         punteggio = 0
         errori = []
 
-        for idx, (key, _, _, corretto, punti) in enumerate(DOMANDE, 1):
-            risposta = st.session_state.get(key)
-            if risposta is None:
-                errori.append((idx, key))
-            elif risposta == corretto:
-                punteggio += punti
-
-        if st.session_state.get("Bevande alcoliche") is None:
-            errori.append((14, "Bevande alcoliche"))
+        if st.session_state.get("genere") is None:
+            st.warning("È obbligatorio selezionare il genere")
         else:
-            if st.session_state["genere"] == "Femmina" and st.session_state["Bevande alcoliche"] == "1":
-                punteggio += 1
-            elif st.session_state["genere"] == "Maschio" and st.session_state["Bevande alcoliche"] == "2":
-                punteggio += 1
+            for idx, (key, _, _, corretto, punti) in enumerate(DOMANDE, 1):
+                risposta = st.session_state.get(key)
+                if risposta is None:
+                    errori.append((idx, key))
+                elif risposta == corretto:
+                    punteggio += punti
 
-        if errori:
-            for idx, _ in errori:
-                st.warning(f"Manca la risposta alla domanda n. {idx}")
-        else:
-            st.session_state.calcolato = True
-            st.session_state.punteggio = punteggio
+            if st.session_state.get("Bevande alcoliche") is None:
+                errori.append((14, "Bevande alcoliche"))
+            else:
+                if st.session_state["genere"] == "Femmina" and st.session_state["Bevande alcoliche"] == "1":
+                    punteggio += 1
+                elif st.session_state["genere"] == "Maschio" and st.session_state["Bevande alcoliche"] == "2":
+                    punteggio += 1
+
+            if errori:
+                for idx, _ in errori:
+                    st.warning(f"Manca la risposta alla domanda n. {idx}")
+            else:
+                st.session_state.calcolato = True
+                st.session_state.punteggio = punteggio
 
 if st.session_state.calcolato:
     st.subheader("\U0001F4C8 Risultato")
