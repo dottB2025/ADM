@@ -109,7 +109,8 @@ if st.session_state.calcolato:
             pdf.set_font("Arial", "", 12)
             pdf.ln(10)
             pdf.cell(0, 10, f"Codice intervista: {st.session_state['codice']}", ln=True)
-            pdf.cell(0, 10, f"Genere: {st.session_state['genere']}", ln=True)
+            genere_value = st.session_state.get("genere", "Non specificato")
+            pdf.cell(0, 10, f"Genere: {genere_value}", ln=True)
             pdf.ln(5)
 
             for idx, (key, testo, _, _, _) in enumerate(DOMANDE, 1):
