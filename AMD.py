@@ -35,7 +35,7 @@ if "vuole_salvare" not in st.session_state:
     st.session_state.vuole_salvare = False
 
 if not st.session_state.calcolato:
-    genere = st.radio("Seleziona il tuo genere", ["Femmina", "Maschio"], horizontal=True, index=None)
+    sesso = st.radio("Seleziona il tuo sesso", ["Femmina", "Maschio"], horizontal=True, index=None)
     errori = []
 
     with st.form("questionario"):
@@ -52,10 +52,10 @@ if not st.session_state.calcolato:
         invia = st.form_submit_button("Calcola Punteggio")
 
     if invia:
-        if genere is None:
-            st.warning("È obbligatorio selezionare il genere")
+        if sesso is None:
+            st.warning("È obbligatorio selezionare il sesso")
         else:
-            st.session_state["genere"] = genere
+            st.session_state["sesso"] = sesso
             punteggio = 0
             errori = []
 
@@ -72,9 +72,9 @@ if not st.session_state.calcolato:
                 errori.append((14, "Bevande alcoliche"))
             else:
                 st.session_state["Bevande alcoliche"] = valore_alcol
-                if st.session_state["genere"] == "Femmina" and valore_alcol == "1":
+                if st.session_state["sesso"] == "Femmina" and valore_alcol == "1":
                     punteggio += 1
-                elif st.session_state["genere"] == "Maschio" and valore_alcol == "2":
+                elif st.session_state["sesso"] == "Maschio" and valore_alcol == "2":
                     punteggio += 1
 
             if errori:
@@ -111,30 +111,16 @@ if st.session_state.calcolato:
 
         if codice:
             data_salvataggio = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-            txt_content = f"""Questionario di Aderenza alla Dieta Mediterranea (ADM)\n\nCodice intervista: {codice}\nGenere: {st.session_state['genere']}\nData: {data_salvataggio}\n\n"""
-            csv_rows = ["Domanda,Risposta"]
+            txt_content = f"""Questionario di Aderenza alla Dieta Mediterranea (ADM)\n\nCodice intervista: {codice}\nSesso: {st.session_state['sesso']}\nData: {data_salvataggio}\n\n"""
 
             for idx, (key, testo, _, _, _) in enumerate(DOMANDE, 1):
                 risposta = st.session_state.get(key, "")
                 txt_content += f"{idx}. {testo}\nRisposta: {risposta}\n\n"
-                csv_rows.append(f"{testo},{risposta}")
 
             risposta_alcol = st.session_state.get("Bevande alcoliche", "")
             txt_content += f"14. Quanti bicchieri di vino/birra bevi al giorno\nRisposta: {risposta_alcol}\n\n"
-            csv_rows.append("Quanti bicchieri di vino/birra bevi al giorno," + risposta_alcol)
 
             txt_content += f"\nPunteggio MDSS: {st.session_state.punteggio} / 24\n{interpretazione}\n"
-            txt_content += """\n\nPunteggio di aderenza alla dieta mediterranea (MDSS: Mediterranean Diet Serving Score) calcolato secondo Monteagudo et al. (https://doi.org/10.1371/journal.pone.0128594) ed ottenuto tramite web app del dott. Giovanni Buonsanti - Matera"""
-
-            csv_rows.insert(1, f"Genere,{st.session_state['genere']}")
-            csv_rows.insert(2, f"Data,{data_salvataggio}")
-            csv_rows.append(f"Punteggio MDSS,{st.session_state.punteggio} / 24")
-            csv_rows.append(f"Interpretazione,{interpretazione}")
-
-            csv_buffer = io.StringIO()
-            for row in csv_rows:
-                csv_buffer.write(row + "\n")
-            csv_data = csv_buffer.getvalue().encode("utf-8")
+            txt_content += """\n\nPunteggio di aderenza alla dieta mediterranea (MDSS: Mediterranean Diet Serving Score) calcolato secondo Monteagudo et al. (https://doi.org/10.1371/journal.pone.0128594) ed ottenuto tramite web app del dott. Giovanni Buonsanti - nutrizionista. Per appuntamenti: https://buonsanti.youcanbook.me/"""
 
             st.download_button("⬇️ Scarica in formato TXT", data=txt_content, file_name=f"MDSS_{codice}.txt")
-            st.download_button("⬇️ Scarica in formato CSV", data=csv_data, file_name=f"MDSS_{codice}.csv", mime="text/csv")
